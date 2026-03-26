@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GBA Emulator</title>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+<style>
+body {
+    margin: 0;
+    background-color: #111;
+    color: #f2f2f2;
+    font-family: Arial, Helvetica, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+:root {
+    --accent: #d9544f;
+}
+
+body.leafgreen {
+    --accent: #4fd96b;
+}
+
+#emulator-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 30px;
+    background: #1a1a1a;
+    border-radius: 12px;
+    box-shadow:
+        0 0 20px var(--accent),
+        inset 0 0 10px rgba(255,255,255,0.03);
+}
+
+#screen {
+    width: 720px;
+    height: 480px;
+    background: black;
+    border: 6px solid #333;
+    border-radius: 6px;
+    image-rendering: pixelated;
+}
+
+#controls {
+    display: flex;
+    gap: 10px;
+}
+
+button {
+    padding: 10px 16px;
+    background: #2b2b2b;
+    color: white;
+    border: 1px solid #444;
+    border-radius: 6px;
+    cursor: pointer;
+}
+</style>
+</head>
+
+<body class="{{ theme }}">
+<div id="emulator-container">
+<h1 id="title"></h1>
+<canvas id="screen" width="240" height="160"></canvas>
+<div id="controls">
+<button id="save">Save</button>
+<button id="load">Load</button>
+</div>
+</div>
+
+<script>
+// initialize socket and canvas
+const socket = io();
+const canvas = document.getElementById("screen");
+const ctx = canvas.getContext("2d");
+ctx.imageSmoothingEnabled = false;
+
+// track pressed keys to prevent repeats
+const pressedKeys = new Set();
+function normalizeKey(key) { return key.toLowerCase(); }
+
+// default keymap matches server mapping
+let keymap = {
+    "arrowup": "UP",
+    "arrowdown": "DOWN",
+    "arrowleft": "LEFT",
+    "arrowright": "RIGHT",
+    "z": "A",
+    "x": "B",
+    "enter": "START",
+    "shift": "SELECT",
+    "q": "L",
+    "w": "R"
+};
+
+// send key events to server
+function sendKey(key, type) {
+    socket.emit("key_event", { key: key, type: type });
+}
+
+// handle key down
+window.addEventListener("keydown", (e) => {
+    const key = normalizeKey(e.key);
+    if (pressedKeys.has(key)) return;
+    pressedKeys.add(key);
+    if (keymap[key]) {
+        e.preventDefault();
+        sendKey(key, "down");
+    }
+});
+
+// handle key up
+window.addEventListener("keyup", (e) => {
+    const key = normalizeKey(e.key);
+    pressedKeys.delete(key);
+    if (keymap[key]) {
+        sendKey(key, "up");
+    }
+});
+
+// release all keys on blur
+window.addEventListener("blur", () => {
+    pressedKeys.clear();
+    socket.emit("release_all");
+});
+
+// render frames received from server
+socket.on("frame", (data) => {
+    const img = new Image();
+    img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    img.src = "data:image/jpeg;base64," + data;
+});
+
+// save and load actions
+document.getElementById("save").onclick = () => fetch("/save", { method: "POST" });
+document.getElementById("load").onclick = () => fetch("/load", { method: "POST" });
+
+// set title based on theme passed from server
+const title = document.getElementById("title");
+if ("{{ theme }}" === "leafgreen") {
+    title.textContent = "LeafGreen Emulator";
+} else {
+    title.textContent = "FireRed Emulator";
+}
+</script>
+</body>
+</html>
