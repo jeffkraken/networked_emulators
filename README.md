@@ -20,3 +20,8 @@ Dockerized mGBA-based GBA emulator with multiplayer support, headless Xvfb displ
 - Test running mGBA manually inside container shell.
 - Verify ffmpeg command grabs frames correctly from Xvfb.
 - Resume troubleshooting black frames and multiplayer sync.
+
+## HEADS UP
+After cloning:
+- cd {repo}/networked_emulators && mkdir saves roms
+- Then download legally obtained roms for fire red and leaf green, be sure to save as pokemon_firered.gba and pokemon_leafgreen.gba in the roms directory
