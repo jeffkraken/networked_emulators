@@ -1,16 +1,15 @@
 services:
-
   firered:
     build: .
     container_name: firered
     ports:
-      - "8080:8080"   # web
-      - "6000:6000"   # link
+      - "8080:8080"   # Flask web
+      - "6000:6000"   # link for multiplayer
     environment:
-      - ROM_PATH=/roms/pokemon_firered.gba
-      - THEME=firered
-      - LINK_MODE=host
-      - LINK_PORT=6000
+      ROM_PATH: /roms/pokemon_firered.gba
+      THEME: firered
+      LINK_MODE: host
+      LINK_PORT: 6000
     volumes:
       - ./roms:/roms
       - ./saves/firered:/saves
@@ -21,13 +20,13 @@ services:
     build: .
     container_name: leafgreen
     ports:
-      - "8081:8080"   # web
+      - "8081:8080"   # Flask web for LeafGreen
     environment:
-      - ROM_PATH=/roms/pokemon_leafgreen.gba
-      - THEME=leafgreen
-      - LINK_MODE=client
-      - LINK_HOST=firered
-      - LINK_PORT=6000
+      ROM_PATH: /roms/pokemon_leafgreen.gba
+      THEME: leafgreen
+      LINK_MODE: client
+      LINK_HOST: firered
+      LINK_PORT: 6000
     depends_on:
       - firered
     volumes:
