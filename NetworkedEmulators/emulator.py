@@ -41,9 +41,6 @@ class Emulator:
         elif self.link_mode == "client":
             cmd += ["--multiplayer", f"--link={self.link_host}:{self.link_port}"]
 
-        # Use xvfb-run to automatically pick a display
-        cmd = ["xvfb-run", "-a", "-s", "-screen 0 240x160x24"] + cmd
-
         print("Launching mGBA:", " ".join(cmd))
         self.process = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
@@ -56,8 +53,8 @@ class Emulator:
         ffmpeg_cmd = [
             "ffmpeg",
             "-f", "x11grab",
-            "-video_size", "240x160",
-            "-i", os.getenv("DISPLAY", ":99"),  # will match xvfb-run assigned display
+            "-video_size", "1024x768",
+            "-i", os.getenv("DISPLAY", ":1"),
             "-f", "rawvideo",
             "-pix_fmt", "bgr24",
             "-"
